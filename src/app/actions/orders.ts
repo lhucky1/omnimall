@@ -104,3 +104,18 @@ export async function handleSmsNotification(orderId: string) {
         console.error("Failed to handle SMS notification:", error.message);
     }
 }
+
+
+export async function handleBulkSmsNotification(orderIds: string[]): Promise<{ success: boolean }> {
+  try {
+    // This doesn't need to block, but we await it to ensure the server action
+    // doesn't terminate before the promises are kicked off.
+    await Promise.all(orderIds.map(id => handleSmsNotification(id)));
+    return { success: true };
+  } catch (error: any) {
+    console.error("Bulk SMS notification failed:", error.message);
+    // Don't surface this error to the user, just log it.
+    // The main checkout process was successful.
+    return { success: false };
+  }
+}

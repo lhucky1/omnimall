@@ -31,7 +31,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
-import { handleSmsNotification } from "@/app/actions/orders";
+import { handleBulkSmsNotification } from "@/app/actions/orders";
 
 
 const supabase = createClient();
@@ -174,10 +174,10 @@ export default function CartPage() {
                 }
             }
 
-            // After all orders are created, send SMS notifications without waiting
-            createdOrderIds.forEach(orderId => {
-                handleSmsNotification(orderId).catch(err => console.error("Failed to send SMS for order:", orderId, err));
-            });
+            // After all orders are created, send SMS notifications
+            if (createdOrderIds.length > 0) {
+              await handleBulkSmsNotification(createdOrderIds);
+            }
 
 
             toast({
