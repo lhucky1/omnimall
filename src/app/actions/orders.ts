@@ -93,7 +93,7 @@ export async function handleSmsNotification(orderId: string) {
             return;
         }
 
-        const messageContent = `New Omnimall Order!\nBuyer: ${order.buyer_name}\nProduct: ${productDetails.name} (x${order.quantity})\nTotal: GHC ${order.final_total}.\nCheck your dashboard.`;
+        const messageContent = `New Omnimall Order!\nBuyer: ${order.buyer_name}\nProduct: ${productDetails.name} (x${order.quantity})\nTotal: GHC ${order.final_total}.\nclick here to open your dashboard: https://omnimall.vercel.app/profile to check your orders`;
 
         await sendSms({
             recipient: sellerPhoneNumber,
