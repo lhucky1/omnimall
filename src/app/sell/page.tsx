@@ -13,14 +13,13 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDes
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Upload, UserCheck, PackagePlus, Wand2 } from 'lucide-react';
+import { Loader2, Upload, UserCheck, PackagePlus } from 'lucide-react';
 import { createClient } from '@/lib/supabase';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Checkbox } from '@/components/ui/checkbox';
 import { createProduct } from '@/app/actions/products';
-import { generateProductDescription } from '@/ai/flows/product-description-generator';
 
 const supabase = createClient();
 
@@ -89,7 +88,6 @@ export default function SellPage() {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
-  const [isGenerating, setIsGenerating] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -148,25 +146,6 @@ export default function SellPage() {
       form.setValue('delivery_price', 0);
     }
   }, [deliveryOption, form]);
-
-  const handleGenerateDescription = async () => {
-    const productName = form.getValues("name");
-    if (!productName) {
-        toast({ title: "Product name is required", description: "Please enter a product name to generate a description.", variant: "destructive" });
-        return;
-    }
-    setIsGenerating(true);
-    try {
-        const result = await generateProductDescription({ prompt: productName });
-        form.setValue("description", result.description);
-        toast({ title: "Description Generated!", description: "The AI has created a description for your product." });
-    } catch (error) {
-        console.error("AI Description Error: ", error);
-        toast({ title: "Generation Failed", description: "Could not generate a description at this time.", variant: "destructive" });
-    } finally {
-        setIsGenerating(false);
-    }
-  };
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     if (!user) {
@@ -286,12 +265,6 @@ export default function SellPage() {
                                 <FormLabel>Description</FormLabel>
                                 <FormControl><Textarea placeholder={productType === 'product' ? "Describe your product in detail..." : "Describe the service you offer, what's included, and your experience..."} {...field} rows={5} /></FormControl>
                                 <FormMessage />
-                                <div className="flex justify-end pt-2">
-                                  <Button type="button" variant="outline" size="sm" onClick={handleGenerateDescription} disabled={isGenerating || !form.watch('name')}>
-                                    {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Wand2 className="mr-2 h-4 w-4" />}
-                                    AI Generate
-                                  </Button>
-                                </div>
                             </FormItem>
                         )}/>
 

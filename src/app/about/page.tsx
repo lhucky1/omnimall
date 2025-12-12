@@ -61,17 +61,6 @@ export default function AboutPage() {
                     <p className="mt-1 text-muted-foreground">Built with the needs of the university community in mind, fostering a trusted peer-to-peer environment for commerce and connection.</p>
                 </div>
             </div>
-             <div className="flex items-start space-x-4">
-                <div className="flex-shrink-0">
-                    <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
-                        <Cpu className="w-6 h-6"/>
-                    </div>
-                </div>
-                <div>
-                    <h3 className="text-xl font-semibold">AI-Powered Descriptions</h3>
-                    <p className="mt-1 text-muted-foreground">Our smart AI assistant helps sellers write compelling and effective product descriptions, making your listings stand out with minimal effort.</p>
-                </div>
-            </div>
             <div className="flex items-start space-x-4">
                 <div className="flex-shrink-0">
                     <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary">

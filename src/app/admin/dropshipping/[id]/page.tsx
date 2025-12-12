@@ -46,7 +46,6 @@ import Link from 'next/link';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Image from 'next/image';
 import { useAuth } from '@/contexts/AuthContext';
-import { generateProductDescription } from '@/ai/flows/product-description-generator';
 import { Checkbox } from '@/components/ui/checkbox';
 
 const MAX_IMAGES = 5;
@@ -72,7 +71,6 @@ function AddProductForm({ supplierId, onFinished }: { supplierId: string, onFini
     const { toast } = useToast();
     const { user, userProfile } = useAuth();
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [isGenerating, setIsGenerating] = useState(false);
     const [imagePreviews, setImagePreviews] = useState<string[]>([]);
 
     const form = useForm<ProductFormValues>({
@@ -112,24 +110,6 @@ function AddProductForm({ supplierId, onFinished }: { supplierId: string, onFini
           form.setValue('delivery_price', 0);
         }
     }, [deliveryOption, form]);
-
-    const handleGenerateDescription = async () => {
-        const productName = form.getValues("name");
-        if (!productName) {
-            toast({ title: "Product name is required to generate a description.", variant: "destructive" });
-            return;
-        }
-        setIsGenerating(true);
-        try {
-            const result = await generateProductDescription({ prompt: productName });
-            form.setValue("description", result.description);
-            toast({ title: "Description generated!" });
-        } catch (error) {
-            toast({ title: "Failed to generate description", variant: "destructive" });
-        } finally {
-            setIsGenerating(false);
-        }
-    };
     
     async function onSubmit(values: ProductFormValues) {
         if (!user) {
@@ -185,7 +165,6 @@ function AddProductForm({ supplierId, onFinished }: { supplierId: string, onFini
                         <FormItem>
                              <div className="flex justify-between items-center">
                                 <FormLabel>Description</FormLabel>
-                                <Button type="button" variant="outline" size="sm" onClick={handleGenerateDescription} disabled={isGenerating || !form.getValues("name")}><Wand2 className="mr-2 h-4 w-4" />AI Generate</Button>
                             </div>
                             <FormControl><Textarea rows={4} {...field} /></FormControl>
                             <FormMessage />
@@ -244,7 +223,7 @@ function AddProductForm({ supplierId, onFinished }: { supplierId: string, onFini
                         />
                     </div>
                     <FormItem>
-                        <FormLabel>Product Images (up to {MAX_IMAGES})</FormLabel>
+                        <FormLabel>Product Images (up to ${MAX_IMAGES})</FormLabel>
                         <FormControl>
                              <Input type="file" multiple accept="image/*" {...imageRest} ref={imageRef} />
                         </FormControl>
@@ -531,7 +510,7 @@ export default function SupplierProductsPage() {
             
             <Card>
                 <CardHeader>
-                    <CardTitle>Products from {supplier.name}</CardTitle>
+                    <CardTitle>Products from ${supplier.name}</CardTitle>
                 </CardHeader>
                 <CardContent>
                      <Table>
@@ -550,8 +529,8 @@ export default function SupplierProductsPage() {
                             ) : products.map(item => (
                                 <TableRow key={item.id}>
                                     <TableCell className="font-medium">{item.name}</TableCell>
-                                    <TableCell>GHC {item.cost_price.toFixed(2)}</TableCell>
-                                    <TableCell>GHC {item.product?.price ? item.product.price.toFixed(2) : 'N/A'}</TableCell>
+                                    <TableCell>GHC ${item.cost_price.toFixed(2)}</TableCell>
+                                    <TableCell>GHC ${item.product?.price ? item.product.price.toFixed(2) : 'N/A'}</TableCell>
                                      <TableCell>
                                         {item.product ? (
                                             <Link href={`/products/${item.product.id}`} target="_blank" className="text-primary underline hover:no-underline">
