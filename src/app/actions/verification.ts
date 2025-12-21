@@ -47,30 +47,33 @@ export async function submitVerification(formData: FormData) {
       return { success: false, error: 'Display photo is required.' };
     }
     
-    const selfiePath = `${user.id}/selfie-${Date.now()}`;
-    const { error: selfieUploadError } = await supabaseAdmin.storage
+    const filePath = `verifications/${user.id}/selfie-${Date.now()}`;
+    const { error: uploadError } = await supabaseAdmin.storage
       .from('verification-images')
-      .upload(selfiePath, selfieFile);
+      .upload(filePath, selfieFile, {
+        upsert: true,
+        contentType: selfieFile.type,
+      });
 
-    if (selfieUploadError) {
-      console.error('Selfie upload error:', selfieUploadError);
-      throw new Error(`Selfie upload failed: ${selfieUploadError.message}`);
+    if (uploadError) {
+      console.error('Selfie upload error:', uploadError);
+      throw new Error(`Selfie upload failed: ${uploadError.message}`);
     }
 
-    const { data: urlData } = supabaseAdmin.storage.from('verification-images').getPublicUrl(selfiePath);
+    const { data: urlData } = supabaseAdmin.storage.from('verification-images').getPublicUrl(filePath);
     const selfiePublicUrl = urlData.publicUrl;
     
     if (!selfiePublicUrl) {
-        console.error('Could not get public URL for selfie path:', selfiePath);
+        console.error('Could not get public URL for selfie path:', filePath);
         throw new Error('Could not get public URL for the uploaded selfie.');
     }
 
     const { data, error: insertError } = await supabaseAdmin
       .from('seller_verifications')
       .insert({
-        user_id: user.id, // Use the authenticated user's ID
+        user_id: user.id,
         selfie_url: selfiePublicUrl,
-        status: 'approved', // Auto-approve
+        status: 'pending', // Set status to pending for admin review
         full_name: parsedData.data.fullName,
         business_name: parsedData.data.businessName,
         location: parsedData.data.location,
@@ -84,28 +87,8 @@ export async function submitVerification(formData: FormData) {
       console.error('Verification insert error:', insertError);
       throw new Error(`Could not save verification record: ${insertError.message}`);
     }
-
-    // Now just update the profile status and other details
-    const { error: profileUpdateError } = await supabaseAdmin
-      .from('profiles')
-      .update({ 
-          is_verified_seller: true, 
-          avatar_url: selfiePublicUrl, // Update avatar with selfie
-          display_name: parsedData.data.businessName, // Update name to business name
-          location: parsedData.data.location, 
-          phone_number: parsedData.data.businessPhone 
-      })
-      .eq('uid', user.id);
     
-    if (profileUpdateError) {
-      console.error('Profile update error:', profileUpdateError);
-      // Rollback image upload if profile update fails
-      await supabaseAdmin.storage.from('verification-images').remove([selfiePath]);
-      throw new Error(`Could not update user profile status: ${profileUpdateError.message}`);
-    }
-
-    revalidatePath('/sell');
-    revalidatePath('/profile');
+    revalidatePath('/admin/sellers');
     
     return { success: true, data: data };
 

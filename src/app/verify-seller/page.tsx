@@ -126,7 +126,6 @@ export default function VerifySellerPage() {
         throw new Error(result.error || 'An unknown error occurred.');
       }
       
-      await fetchUserProfile(user!); // Refresh user profile to get new status
       setIsSubmitted(true);
 
     } catch (error: any) {
@@ -164,13 +163,13 @@ export default function VerifySellerPage() {
         <div className="container mx-auto px-4 py-12 text-center">
             <Alert className="max-w-lg mx-auto">
                 <UserCheck className="h-4 w-4" />
-                <AlertTitle>You're Now a Seller!</AlertTitle>
+                <AlertTitle>Application Submitted!</AlertTitle>
                 <AlertDescription>
-                    Your seller profile is complete. You can now start listing items on the marketplace.
+                    Your seller profile application has been submitted for review. You will be notified once it's approved.
                 </AlertDescription>
             </Alert>
             <div className="mt-6">
-                 <Button onClick={() => router.push('/sell')}>Start Selling</Button>
+                 <Button onClick={() => router.push('/')}>Back to Home</Button>
             </div>
         </div>
     );
@@ -255,7 +254,7 @@ export default function VerifySellerPage() {
                 <div className="flex flex-col items-end">
                     <Button type="submit" size="lg" className="w-full md:w-auto" disabled={isSubmitting}>
                         {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <UserCheck className="mr-2 h-4 w-4"/>}
-                        {isSubmitting ? 'Submitting...' : 'Complete Seller Profile'}
+                        {isSubmitting ? 'Submitting...' : 'Submit for Review'}
                     </Button>
                     {isSubmitting && showSlowLoadMessage && (
                         <p className="mt-2 text-sm text-muted-foreground">Taking too long? Please refresh and try again.</p>
@@ -266,7 +265,3 @@ export default function VerifySellerPage() {
     </div>
   );
 }
-
-    
-
-    
