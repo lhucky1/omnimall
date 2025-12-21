@@ -47,11 +47,18 @@ export async function submitVerification(formData: FormData) {
       return { success: false, error: 'Display photo is required.' };
     }
     
-    // 1. Upload the image using the Admin client
-    const filePath = `avatars/${user.id}/${Date.now()}-${selfieFile.name}`;
+    // 1. Generate a safe file path
+    const fileExt = selfieFile.name.split('.').pop();
+    const filePath = `avatars/${user.id}/profile.${fileExt}`;
+
+    // 2. Convert File to Buffer (The Fix)
+    const arrayBuffer = await selfieFile.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    // 3. Upload the image using the ADMIN client and the Buffer
     const { error: uploadError } = await supabaseAdmin.storage
       .from('profile-images')
-      .upload(filePath, selfieFile, {
+      .upload(filePath, buffer, {
         upsert: true,
         contentType: selfieFile.type,
       });
@@ -61,7 +68,7 @@ export async function submitVerification(formData: FormData) {
       throw new Error(`Selfie upload failed: ${uploadError.message}`);
     }
 
-    // 2. Get the public URL of the uploaded image
+    // 4. Get the public URL of the uploaded image
     const { data: urlData } = supabaseAdmin.storage.from('profile-images').getPublicUrl(filePath);
     const selfiePublicUrl = urlData.publicUrl;
     
@@ -70,7 +77,7 @@ export async function submitVerification(formData: FormData) {
         throw new Error('Could not get public URL for the uploaded selfie.');
     }
 
-    // 3. Update the user's profile with the new info and set them as a verified seller
+    // 5. Update the user's profile with the new info and set them as a verified seller
     const { error: profileUpdateError } = await supabaseAdmin
       .from('profiles')
       .update({
