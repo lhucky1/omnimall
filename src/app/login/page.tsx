@@ -1,16 +1,19 @@
 
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import Logo from '@/components/Logo';
 import Image from 'next/image';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Terminal } from 'lucide-react';
+import { Terminal, Loader2 } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+
 
 const supabase = createClient();
 
@@ -42,6 +45,15 @@ const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
 );
 
 export default function LoginPage() {
+  const router = useRouter();
+  const { user, loading } = useAuth();
+  
+  useEffect(() => {
+    if (!loading && user) {
+      router.push('/');
+    }
+  }, [user, loading, router]);
+
 
   const handleGoogleSignIn = async () => {
     await supabase.auth.signInWithOAuth({
@@ -51,6 +63,14 @@ export default function LoginPage() {
       },
     });
   };
+
+  if (loading || user) {
+      return (
+          <div className="flex h-screen w-full flex-col items-center justify-center">
+              <Loader2 className="h-8 w-8 animate-spin" />
+          </div>
+      );
+  }
 
   return (
      <div className="flex items-center justify-center min-h-screen p-4">
