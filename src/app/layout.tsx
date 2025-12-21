@@ -14,6 +14,7 @@ import { ThemeProvider } from "next-themes";
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { UnreadMessagesProvider } from '@/contexts/UnreadMessagesContext';
+import { useState, useEffect } from 'react';
 
 
 export default function RootLayout({
@@ -22,6 +23,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   const pathname = usePathname();
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   const isAdminPage = pathname.startsWith('/admin');
   const isChatPage = pathname.startsWith('/chat/');
   const isSignupSuccessPage = pathname === '/signup-success';
@@ -58,7 +65,7 @@ export default function RootLayout({
               <WishlistProvider>
                 <UnreadMessagesProvider>
                   <div className={cn("flex flex-col flex-1", isChatPage && "h-full")}>
-                    {showHeaderAndFooter && <Header />}
+                    {isClient && showHeaderAndFooter && <Header />}
                     <LiveNotification />
                     <main className={cn(
                       "flex-1 flex flex-col",
@@ -67,8 +74,8 @@ export default function RootLayout({
                     )}>
                       {children}
                     </main>
-                    {showHeaderAndFooter && !pathname.startsWith('/chat') && <Footer />}
-                    {showHeaderAndFooter && !pathname.startsWith('/chat') && <MobileBottomNav />}
+                    {isClient && showHeaderAndFooter && !pathname.startsWith('/chat') && <Footer />}
+                    {isClient && showHeaderAndFooter && !pathname.startsWith('/chat') && <MobileBottomNav />}
                   </div>
                   <Toaster />
                 </UnreadMessagesProvider>
