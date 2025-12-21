@@ -126,6 +126,8 @@ export default function VerifySellerPage() {
         throw new Error(result.error || 'An unknown error occurred.');
       }
       
+      // Manually refetch the user profile to get the updated seller status
+      await fetchUserProfile(user);
       setIsSubmitted(true);
 
     } catch (error: any) {
@@ -163,13 +165,14 @@ export default function VerifySellerPage() {
         <div className="container mx-auto px-4 py-12 text-center">
             <Alert className="max-w-lg mx-auto">
                 <UserCheck className="h-4 w-4" />
-                <AlertTitle>Application Submitted!</AlertTitle>
+                <AlertTitle>You are now a Verified Seller!</AlertTitle>
                 <AlertDescription>
-                    Your seller profile application has been submitted for review. You will be notified once it's approved.
+                    Congratulations! Your seller profile is active. You can now start listing items on OMNIMALL.
                 </AlertDescription>
             </Alert>
-            <div className="mt-6">
+            <div className="mt-6 flex justify-center gap-4">
                  <Button onClick={() => router.push('/')}>Back to Home</Button>
+                 <Button onClick={() => router.push('/sell')} variant="outline">List an Item</Button>
             </div>
         </div>
     );
@@ -254,7 +257,7 @@ export default function VerifySellerPage() {
                 <div className="flex flex-col items-end">
                     <Button type="submit" size="lg" className="w-full md:w-auto" disabled={isSubmitting}>
                         {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <UserCheck className="mr-2 h-4 w-4"/>}
-                        {isSubmitting ? 'Submitting...' : 'Submit for Review'}
+                        {isSubmitting ? 'Submitting...' : 'Become a Seller'}
                     </Button>
                     {isSubmitting && showSlowLoadMessage && (
                         <p className="mt-2 text-sm text-muted-foreground">Taking too long? Please refresh and try again.</p>

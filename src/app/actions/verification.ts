@@ -16,16 +16,16 @@ const formSchema = z.object({
 
 export async function submitVerification(formData: FormData) {
   const supabase = createClient();
+  const supabaseAdmin = getSupabaseAdmin();
+
+  if (!supabaseAdmin) {
+    return { success: false, error: "Administrator client not configured. Cannot process request." };
+  }
 
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
     return { success: false, error: "User not authenticated." };
-  }
-
-  const supabaseAdmin = getSupabaseAdmin();
-  if (!supabaseAdmin) {
-    return { success: false, error: "Administrator client not configured. Cannot process request." };
   }
 
   try {
@@ -47,9 +47,10 @@ export async function submitVerification(formData: FormData) {
       return { success: false, error: 'Display photo is required.' };
     }
     
-    const filePath = `verifications/${user.id}/selfie-${Date.now()}`;
+    // 1. Upload the image using the Admin client
+    const filePath = `avatars/${user.id}/${Date.now()}-${selfieFile.name}`;
     const { error: uploadError } = await supabaseAdmin.storage
-      .from('verification-images')
+      .from('profile-images')
       .upload(filePath, selfieFile, {
         upsert: true,
         contentType: selfieFile.type,
@@ -60,7 +61,8 @@ export async function submitVerification(formData: FormData) {
       throw new Error(`Selfie upload failed: ${uploadError.message}`);
     }
 
-    const { data: urlData } = supabaseAdmin.storage.from('verification-images').getPublicUrl(filePath);
+    // 2. Get the public URL of the uploaded image
+    const { data: urlData } = supabaseAdmin.storage.from('profile-images').getPublicUrl(filePath);
     const selfiePublicUrl = urlData.publicUrl;
     
     if (!selfiePublicUrl) {
@@ -68,29 +70,29 @@ export async function submitVerification(formData: FormData) {
         throw new Error('Could not get public URL for the uploaded selfie.');
     }
 
-    const { data, error: insertError } = await supabaseAdmin
-      .from('seller_verifications')
-      .insert({
-        user_id: user.id,
-        selfie_url: selfiePublicUrl,
-        status: 'pending', // Set status to pending for admin review
-        full_name: parsedData.data.fullName,
-        business_name: parsedData.data.businessName,
+    // 3. Update the user's profile with the new info and set them as a verified seller
+    const { error: profileUpdateError } = await supabaseAdmin
+      .from('profiles')
+      .update({
+        is_verified_seller: true,
+        display_name: parsedData.data.fullName,
+        phone_number: parsedData.data.businessPhone,
         location: parsedData.data.location,
-        business_email: parsedData.data.businessEmail,
-        business_phone: parsedData.data.businessPhone,
+        avatar_url: selfiePublicUrl,
       })
-      .select()
-      .single();
+      .eq('uid', user.id);
 
-    if (insertError) {
-      console.error('Verification insert error:', insertError);
-      throw new Error(`Could not save verification record: ${insertError.message}`);
+    if (profileUpdateError) {
+      console.error('Profile update error:', profileUpdateError);
+      // Optional: attempt to delete the uploaded image if the profile update fails
+      await supabaseAdmin.storage.from('profile-images').remove([filePath]);
+      throw new Error(`Could not update your seller profile: ${profileUpdateError.message}`);
     }
     
-    revalidatePath('/admin/sellers');
+    revalidatePath('/sell');
+    revalidatePath('/profile');
     
-    return { success: true, data: data };
+    return { success: true };
 
   } catch (error: any) {
     console.error('Full verification submission error:', error);
