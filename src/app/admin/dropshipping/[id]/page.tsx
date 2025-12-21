@@ -510,7 +510,7 @@ export default function SupplierProductsPage() {
             
             <Card>
                 <CardHeader>
-                    <CardTitle>Products from ${supplier.name}</CardTitle>
+                    <CardTitle>Products from {supplier.name}</CardTitle>
                 </CardHeader>
                 <CardContent>
                      <Table>
@@ -529,8 +529,8 @@ export default function SupplierProductsPage() {
                             ) : products.map(item => (
                                 <TableRow key={item.id}>
                                     <TableCell className="font-medium">{item.name}</TableCell>
-                                    <TableCell>GHC ${item.cost_price.toFixed(2)}</TableCell>
-                                    <TableCell>GHC ${item.product?.price ? item.product.price.toFixed(2) : 'N/A'}</TableCell>
+                                    <TableCell>GHC {item.cost_price.toFixed(2)}</TableCell>
+                                    <TableCell>GHC {item.product?.price ? item.product.price.toFixed(2) : 'N/A'}</TableCell>
                                      <TableCell>
                                         {item.product ? (
                                             <Link href={`/products/${item.product.id}`} target="_blank" className="text-primary underline hover:no-underline">
