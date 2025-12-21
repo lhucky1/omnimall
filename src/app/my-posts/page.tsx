@@ -36,25 +36,15 @@ const MAX_FILE_SIZE_MB = 5;
 
 const postFormSchema = z.object({
   content: z.string().max(1000, "Post content cannot exceed 1000 characters.").optional(),
-  images: z.any().optional(),
+  images: z.custom<FileList | undefined>()
+    .refine(files => !files || Array.from(files).length <= MAX_IMAGES, `You can upload a maximum of ${MAX_IMAGES} images.`)
+    .refine(files => !files || Array.from(files).every(file => file.size <= MAX_FILE_SIZE_MB * 1024 * 1024), `Each image must be less than ${MAX_FILE_SIZE_MB}MB.`)
+    .optional(),
 }).refine(data => data.content?.trim() || (data.images && data.images.length > 0), {
     message: "You must add some text or at least one image.",
     path: ["content"],
-}).refine(data => {
-    if (!data.images) return true;
-    const files = Array.from(data.images as FileList);
-    return files.length <= MAX_IMAGES;
-}, {
-    message: `You can upload a maximum of ${MAX_IMAGES} images.`,
-    path: ["images"],
-}).refine(data => {
-    if (!data.images) return true;
-    const files = Array.from(data.images as FileList);
-    return files.every(file => file.size <= MAX_FILE_SIZE_MB * 1024 * 1024);
-}, {
-    message: `Each image must be less than ${MAX_FILE_SIZE_MB}MB.`,
-    path: ["images"],
 });
+
 
 function MyPostCard({ post, onPostDeleted }: { post: FeedPost, onPostDeleted: (postId: string) => void }) {
     const [isDeleting, setIsDeleting] = useState(false);
@@ -118,11 +108,9 @@ export default function MyPostsPage() {
     const form = useForm<z.infer<typeof postFormSchema>>({
         resolver: zodResolver(postFormSchema),
         defaultValues: { content: '', images: undefined },
-        mode: 'onBlur',
     });
     
     const imageFiles = form.watch('images');
-    const { ref: imageFieldRef, ...imageFieldRest } = form.register('images');
 
     useEffect(() => {
         if (!authLoading && !userProfile?.is_verified_seller) {
@@ -226,13 +214,24 @@ export default function MyPostsPage() {
                                     )}
                                 />
 
-                                <FormItem>
-                                    <FormLabel>Add Images (up to ${MAX_IMAGES})</FormLabel>
-                                    <FormControl>
-                                        <Input type="file" multiple accept="image/*" {...imageFieldRest} ref={imageFieldRef} />
-                                    </FormControl>
-                                    <FormMessage>{form.formState.errors.images?.message as React.ReactNode}</FormMessage>
-                                </FormItem>
+                                <FormField
+                                  control={form.control}
+                                  name="images"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Add Images (up to {MAX_IMAGES})</FormLabel>
+                                      <FormControl>
+                                        <Input
+                                          type="file"
+                                          multiple
+                                          accept="image/*"
+                                          onChange={(e) => field.onChange(e.target.files)}
+                                        />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
 
 
                                 {imagePreviews.length > 0 && (

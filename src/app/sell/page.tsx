@@ -105,7 +105,6 @@ export default function SellPage() {
       quantity: 1,
       is_unlimited: false,
     },
-     mode: "onChange",
   });
 
   const productType = form.watch('type');
@@ -383,7 +382,7 @@ export default function SellPage() {
                      <Card>
                         <CardHeader>
                             <CardTitle>3. Product Images</CardTitle>
-                            <CardDescription>Upload between ${MIN_IMAGES} and ${MAX_IMAGES} images of your product. The first image will be the main one.</CardDescription>
+                            <CardDescription>Upload between {MIN_IMAGES} and {MAX_IMAGES} images of your product. The first image will be the main one.</CardDescription>
                         </CardHeader>
                         <CardContent>
                             <FormField
