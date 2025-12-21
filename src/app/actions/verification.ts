@@ -7,11 +7,11 @@ import { getSupabaseAdmin } from '@/lib/supabase';
 import { createClient } from '@/lib/supabase-server';
 
 const formSchema = z.object({
-  fullName: z.string().min(2),
-  businessName: z.string().min(2),
-  location: z.string().min(3),
-  businessEmail: z.string().email(),
-  businessPhone: z.string().min(10),
+  fullName: z.string().min(2, "Full name is required."),
+  businessName: z.string().min(2, "Business name is required."),
+  location: z.string().min(3, "Location is required."),
+  businessEmail: z.string().email("A valid email is required."),
+  businessPhone: z.string().min(10, "A valid phone number is required."),
 });
 
 export async function submitVerification(formData: FormData) {
@@ -43,7 +43,7 @@ export async function submitVerification(formData: FormData) {
     }
 
     const selfieFile = formData.get('selfie') as File;
-    if (!selfieFile) {
+    if (!selfieFile || selfieFile.size === 0) {
       return { success: false, error: 'Display photo is required.' };
     }
     

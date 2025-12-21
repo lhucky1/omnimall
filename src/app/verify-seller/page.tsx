@@ -21,11 +21,11 @@ import Image from 'next/image';
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
 const formSchema = z.object({
-  fullName: z.string().min(2, { message: 'Your full name is required.' }),
-  businessName: z.string().min(2, { message: 'A business or seller name is required.' }),
-  location: z.string().min(3, { message: 'Please specify your location.' }),
-  businessEmail: z.string().email({ message: 'A valid business email is required.' }),
-  businessPhone: z.string().min(10, { message: 'A valid business phone number is required.' }),
+  fullName: z.string().min(2, "Full name is required."),
+  businessName: z.string().min(2, "A business or seller name is required."),
+  location: z.string().min(3, "Please specify your location."),
+  businessEmail: z.string().email("A valid email is required."),
+  businessPhone: z.string().min(10, "A valid phone number is required."),
   selfie: z.instanceof(File, { message: 'A display photo is required.' })
     .refine((file) => file.size <= MAX_FILE_SIZE, 'Photo must be less than 5MB.')
     .refine(
@@ -53,7 +53,7 @@ export default function VerifySellerPage() {
         businessPhone: '',
         location: '',
     },
-    mode: "onChange"
+    mode: "onBlur"
   });
 
   useEffect(() => {
