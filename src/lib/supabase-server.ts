@@ -1,11 +1,11 @@
 
-import { createServerClient, type CookieOptions } from '@supabase/ssr'
-import { cookies } from 'next/headers'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import 'dotenv/config';
 
+// This function creates a Supabase client for server-side rendering (SSR)
+// and server components. It uses environment variables for secure access
+// without relying on browser cookies.
 export const createClient = () => {
-  const cookieStore = cookies()
-
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
@@ -13,33 +13,17 @@ export const createClient = () => {
     throw new Error("Supabase URL and Anon Key must be provided in environment variables.");
   }
 
-  return createServerClient(
+  // Use the standard createClient for server-side operations where cookies are not needed.
+  return createSupabaseClient(
     supabaseUrl,
     supabaseAnonKey,
     {
-      cookies: {
-        get(name: string) {
-          return cookieStore.get(name)?.value
-        },
-        set(name: string, value: string, options: CookieOptions) {
-          try {
-            cookieStore.set({ name, value, ...options })
-          } catch (error) {
-            // The `set` method was called from a Server Component.
-            // This can be ignored if you have middleware refreshing
-            // user sessions.
-          }
-        },
-        remove(name: string, options: CookieOptions) {
-          try {
-            cookieStore.set({ name, value: '', ...options })
-          } catch (error) {
-            // The `delete` method was called from a Server Component.
-            // This can be ignored if you have middleware refreshing
-            // user sessions.
-          }
-        },
-      },
+      auth: {
+        // Disable auto-refreshing of the token on the server, as it's not needed for public data fetching.
+        autoRefreshToken: false,
+        // Disable persisting the session to prevent trying to use localStorage on the server.
+        persistSession: false
+      }
     }
-  )
+  );
 }
