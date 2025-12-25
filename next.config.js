@@ -1,15 +1,20 @@
-
-require('dotenv').config();
-
+require('dotenv').config()
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // REQUIRED for Capacitor
+  output: 'export',
+
+  // Keep your existing ignores
   typescript: {
     ignoreBuildErrors: true,
   },
   eslint: {
     ignoreDuringBuilds: true,
-},
+  },
+
+  // Next Image must be unoptimized for static export
   images: {
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: 'https',
@@ -58,7 +63,7 @@ const nextConfig = {
         hostname: 'underground-peach-5pyqi8uvp3-a79eqti624.edgeone.dev',
         port: '',
         pathname: '/**',
-      }
+      },
     ],
   },
 };

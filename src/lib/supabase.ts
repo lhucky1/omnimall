@@ -30,7 +30,7 @@ export const getSupabaseAdmin = () => {
     }
     // Ensure the service role key is provided.
     if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
-        console.warn("SUPABASE_SERVICE_ROLE_KEY is not set. Admin client will not be created.");
+        console.error("SUPABASE_SERVICE_ROLE_KEY is not set. Admin client will not be created.");
         return null;
     }
     supabaseAdmin = createSupabaseClient(
